@@ -40,8 +40,6 @@ function setup() {
 }
 
 
-
-
 function loop(time) { // eslint-disable-line no-unused-vars
   let speed = 0.5;
   mesh.rotation.x = (time / 1000) * Math.PI/2 * speed;
@@ -64,6 +62,9 @@ document.addEventListener('keydown', e => {
   }
   
   else if (e.key == 'c') {
-    capture.startstop( {startTime:0, timeLimit:1} );
+    capture.startstop(); // start/stop recording
+  }
+  else if (e.key == 'v') {
+    capture.startstop( {startTime:0, timeLimit:1} ); // record 1 second
   }
 });

@@ -7,7 +7,8 @@
  *
  *  no way to know when a capture is done. (event are only dispatched from webmencoder)
  *
- *  repeated captures with startTime + timeLimit yield different results (maybe need to keep the CCapture object)
+ *  repeated captures with startTime + timeLimit yield different results
+ *  (also applies to repeated caputres WITHOUT startTime and/or timeLimit)
  */
 
 let capturer;
@@ -57,7 +58,7 @@ export function update(renderer) {
   capturer.capture(renderer.domElement);
   
   // FIXME export one extra frame, since the first frame has wrong timing
-  if (capturing && currentFrame++ >= totalFrames+1) {
+  if (capturing && totalFrames > 0 && currentFrame++ >= totalFrames+1) {
     stop();
   }
 }
