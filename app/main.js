@@ -64,6 +64,6 @@ document.addEventListener('keydown', e => {
   }
   
   else if (e.key == 'c') {
-    capture.start( {startTime:0, timeLimit:600} );
+    capture.startstop( {startTime:0, timeLimit:1} );
   }
 });
