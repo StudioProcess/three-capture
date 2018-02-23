@@ -1,4 +1,4 @@
-import * as capture from './capture.js';
+import * as rec from './recorder.js';
 
 const W = 1280;
 const H = 800;
@@ -43,12 +43,12 @@ function setup() {
 function loop(time) { // eslint-disable-line no-unused-vars
   let speed = 0.5;
   mesh.rotation.x = (time / 1000) * Math.PI/2 * speed;
-  mesh.rotation.y = (time / 1000) * Math.PI/2 * speed * 0.9;
-  mesh.rotation.z = (time / 1000) * Math.PI/2 * speed * 0.8;
+  // mesh.rotation.y = (time / 1000) * Math.PI/2 * speed * 0.9;
+  // mesh.rotation.z = (time / 1000) * Math.PI/2 * speed * 0.8;
   
   requestAnimationFrame( loop );
   renderer.render( scene, camera );
-  capture.update( renderer );
+  rec.update( renderer );
 }
 
 
@@ -62,9 +62,12 @@ document.addEventListener('keydown', e => {
   }
   
   else if (e.key == 'c') {
-    capture.startstop(); // start/stop recording
+    rec.startstop(); // start/stop recording
   }
   else if (e.key == 'v') {
-    capture.startstop( {startTime:0, timeLimit:1} ); // record 1 second
+    rec.startstop( { start:0 } ); // record from sec 0
+  }
+  else if (e.key == 'b') {
+    rec.startstop( { start:0, duration:1 } ); // record 1 second
   }
 });
