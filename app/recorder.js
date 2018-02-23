@@ -28,7 +28,7 @@ function hijackTimingFunctions() {
   };
 }
 
-function rafCallbacks() {
+function callRequestAnimationFrameCallbacks() {
   requestAnimationFrameCallbacks.forEach( callback => {
     setTimeout(callback, 0, state.currentTime);
   });
@@ -87,22 +87,28 @@ export function start(options) {
 // }
 
 
-export function update() {
+export function update(renderer) {
   if (!state.recording) return;
+  
+  let canvas = renderer.domElement;
   
   // TODO capture a frame; numbering is currentFrame+1
   console.log('CAPTURING FRAME #' + (state.currentFrame+1) + ' TIME ' + state.currentTime);
+  console.assert(performance.now() === state.currentTime, "checking performance.now()");
+  let filename = `${state.currentFrame+1}`.padStart(7,'0');
   
-  // advance time
-  state.currentTime += state.frameTime;
-  state.currentFrame++;
-  
-  // rafCallbacks();
-  
-  // check for end of recording
-  if (state.totalFrames > 0 && state.currentFrame >= state.totalFrames) {
-    stop();
-  }
+  saveCanvasToPNG(canvas, filename).then(() => {
+    // advance time
+    state.currentTime += state.frameTime;
+    state.currentFrame++;
+    
+    callRequestAnimationFrameCallbacks();
+    
+    // check for end of recording
+    if (state.totalFrames > 0 && state.currentFrame >= state.totalFrames) {
+      stop();
+    }
+  });
 }
 
 
@@ -120,4 +126,28 @@ export function startstop(options) {
   } else {
     stop();
   }
+}
+
+export function now() {
+  if (state.recording) {
+    return state.currentTime;
+  } else {
+    return window.performance.now();
+  }
+}
+
+
+async function saveCanvasToPNG(canvas, filename) {
+  return new Promise(resolve => {
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob
+    canvas.toBlob(blob => {
+      let url = URL.createObjectURL(blob);
+      let link = document.createElement('a');
+      link.download = filename;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+      resolve(filename);
+    }, 'image/png');
+  });
 }
