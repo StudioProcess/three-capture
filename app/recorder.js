@@ -132,7 +132,7 @@ export function stop() {
   }
   
   updateHUD();
-  hideHUD(60000);
+  hideHUD(60000 * 3);
 }
 
 
@@ -230,12 +230,19 @@ function updateHUD() {
   frames += state.totalFrames > 0 ? '/' + state.totalFrames : '';
   let clock = new Date(state.currentTime - state.startTime).toISOString().substr(14, 5);
   let intraSecondFrame = (state.currentFrame % state.frameRate + '').padStart(2, '0');
-
-  hud.textContent = `●REC ${clock}.${intraSecondFrame} #${frames}`; // shows number of COMPLETE frames
+  let dataAmount = dataAmountString(tape.length);
+  hud.textContent = `●REC ${clock}.${intraSecondFrame} #${frames} ${dataAmount}`; // shows number of COMPLETE frames
 }
 
 function hideHUD(time = 0) {
   setTimeout(() => {
     hud.style.display = 'none';
   }, time);
+}
+
+
+function dataAmountString(numBytes, mbDecimals = 1, gbDecimals = 2) {
+  let mb = numBytes / 1048576;
+  let gb = mb / 1024;
+  return gb < 1 ? mb.toFixed(mbDecimals) + ' MB': gb.toFixed(gbDecimals) + ' GB';
 }
