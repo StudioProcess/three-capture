@@ -1,3 +1,5 @@
+import Tarball from './tar.js';
+
 let state = {
   startTime: 0, // time for first frame
   currentTime: 0, // current faked time
@@ -8,7 +10,7 @@ let state = {
   recording: false,
 };
 
-
+let tape;
 
 // Save original timing functions (on module load)
 const originalTimingFunctions = {
@@ -78,6 +80,8 @@ export function start(options) {
   
   hijackTimingFunctions();
   
+  tape = new Tarball();
+  
   state.recording = true;
 }
 
@@ -95,9 +99,10 @@ export function update(renderer) {
   // TODO capture a frame; numbering is currentFrame+1
   console.log('CAPTURING FRAME #' + (state.currentFrame+1) + ' TIME ' + state.currentTime);
   console.assert(performance.now() === state.currentTime, "checking performance.now()");
-  let filename = `${state.currentFrame+1}`.padStart(7,'0');
+  let filename = `${state.currentFrame+1}`.padStart(7,'0') + '.png';
   
-  saveCanvasToPNG(canvas, filename).then(() => {
+  // saveCanvasToPNG(canvas, filename).then(() => {
+  addPNGToTarball(canvas, filename).then(() => {
     // advance time
     state.currentTime += state.frameTime;
     state.currentFrame++;
@@ -117,6 +122,10 @@ export function stop() {
   resetTimingFunctions();
   
   state.recording = false;
+  
+  if (tape) {
+    saveBlob( tape.save(), new Date().toISOString() + '.tar' );
+  }
 }
 
 
@@ -150,4 +159,41 @@ async function saveCanvasToPNG(canvas, filename) {
       resolve(filename);
     }, 'image/png');
   });
+}
+
+
+async function addPNGToTarball(canvas, filename) {
+  return canvasToBlob(canvas, 'image/png')
+    .then(blobToArrayBuffer)
+    .then(buffer => {
+      tape.append(filename, buffer);
+    });
+}
+
+async function canvasToBlob(canvas, type) {
+  return new Promise(resolve => {
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob
+    canvas.toBlob(blob => resolve(blob), type);
+  });
+}
+
+async function blobToArrayBuffer(blob) {
+  return new Promise(resolve => {
+    let f = new FileReader();
+    f.onload = () => resolve(f.result);
+    f.readAsArrayBuffer(blob);
+  });
+}
+
+function saveURL(url, filename) {
+  let link = document.createElement('a');
+  link.download = filename;
+  link.href = url;
+  link.click();
+}
+
+function saveBlob(blob, filename) {
+  let url = URL.createObjectURL(blob);
+  saveURL(url, filename);
+  URL.revokeObjectURL(url);
 }
