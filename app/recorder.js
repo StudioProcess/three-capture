@@ -4,7 +4,7 @@ let state = {
   startTime: 0, // time for first frame
   currentTime: 0, // current faked time
   frameRate: 0, // recording frame rate
-  frameTime: 0,
+  frameTime: 0, // duration of a frame
   totalFrames: 0, // total frames to record. 0 means unbounded
   currentFrame: 0, // current recording frame,
   recording: false,
@@ -82,6 +82,8 @@ export function start(options) {
   
   tape = new Tarball();
   
+  createHUD();
+  
   state.recording = true;
 }
 
@@ -114,6 +116,8 @@ export function update(renderer) {
       stop();
     }
   });
+  
+  updateHUD();
 }
 
 
@@ -126,6 +130,9 @@ export function stop() {
   if (tape) {
     saveBlob( tape.save(), new Date().toISOString() + '.tar' );
   }
+  
+  updateHUD();
+  hideHUD(60000);
 }
 
 
@@ -196,4 +203,39 @@ function saveBlob(blob, filename) {
   let url = URL.createObjectURL(blob);
   saveURL(url, filename);
   URL.revokeObjectURL(url);
+}
+
+let hud;
+
+function createHUD() {
+  if (hud) return;
+  hud = document.createElement( 'div' );
+  hud.id = "rec-hud";
+  hud.style.position = 'absolute';
+  hud.style.left = hud.style.top = 0;
+  hud.style.backgroundColor = 'black';
+  hud.style.fontFamily = 'monospace';
+  hud.style.fontSize = '11px';
+  hud.style.padding = '5px';
+  hud.style.color = 'red';
+  hud.style.zIndex = 1;
+  document.body.appendChild( hud );
+}
+
+function updateHUD() {
+  hud.style.display = 'block';
+  hud.style.color = state.recording ? 'red' : 'white';
+  
+  let frames = (state.currentFrame + '').padStart(7,'0');
+  frames += state.totalFrames > 0 ? '/' + state.totalFrames : '';
+  let clock = new Date(state.currentTime - state.startTime).toISOString().substr(14, 5);
+  let intraSecondFrame = (state.currentFrame % state.frameRate + '').padStart(2, '0');
+
+  hud.textContent = `●REC ${clock}.${intraSecondFrame} #${frames}`; // shows number of COMPLETE frames
+}
+
+function hideHUD(time = 0) {
+  setTimeout(() => {
+    hud.style.display = 'none';
+  }, time);
 }
