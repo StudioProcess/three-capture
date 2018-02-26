@@ -10,14 +10,15 @@ let state = {
   recording: false,
 };
 
-let tape;
+let tape; // Tarball (i.e. Tape ARchive)
+
 
 // Save original timing functions (on module load)
 const originalTimingFunctions = {
   requestAnimationFrame: window.requestAnimationFrame,
-  performanceDotNow: window.performance.now
+  performanceDotNow: window.performance.now,
+  dateDotNow: window.Date.now
 };
-
 
 let requestAnimationFrameCallbacks = [];
 
@@ -28,6 +29,15 @@ function hijackTimingFunctions() {
   window.performance.now = function replacementPerformanceDotNow() {
     return state.currentTime;
   };
+  window.Date.now = function replacementDateDotNow() {
+    return state.currentTime;
+  };
+}
+
+function resetTimingFunctions() {
+  window.performance.now = originalTimingFunctions.performanceDotNow;
+  window.requestAnimationFrame = originalTimingFunctions.requestAnimationFrame;
+  window.Date.now = originalTimingFunctions.dateDotNow;
 }
 
 function callRequestAnimationFrameCallbacks() {
@@ -38,12 +48,6 @@ function callRequestAnimationFrameCallbacks() {
 }
 
 
-function resetTimingFunctions() {
-  window.performance.now = originalTimingFunctions.performanceDotNow;
-  window.requestAnimationFrame = originalTimingFunctions.requestAnimationFrame;
-}
-
-
 let default_options = {
   start: undefined,
   duration: undefined,
@@ -51,7 +55,6 @@ let default_options = {
 };
 
 export function start(options) {
-  
   console.log('rec: starting', options);
   options = Object.assign({}, default_options, options);
   
@@ -153,7 +156,7 @@ export function now() {
 }
 
 
-async function saveCanvasToPNG(canvas, filename) {
+async function saveCanvasToPNG(canvas, filename) { // eslint-disable-line
   return new Promise(resolve => {
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob
     canvas.toBlob(blob => {
