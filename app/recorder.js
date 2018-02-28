@@ -238,24 +238,26 @@ function createHUD() {
   hud.style.position = 'absolute';
   hud.style.left = hud.style.top = 0;
   hud.style.backgroundColor = 'black';
-  hud.style.fontFamily = 'monospace';
-  hud.style.fontSize = '11px';
+  hud.style.fontFamily = 'system-ui, monospace';
+  hud.style.fontVariantNumeric = 'tabular-nums';
+  hud.style.fontSize = '12px';
   hud.style.padding = '5px';
-  hud.style.color = 'red';
+  hud.style.color = 'orangered';
   hud.style.zIndex = 1;
   document.body.appendChild( hud );
 }
 
 function updateHUD() {
   hud.style.display = 'block';
-  hud.style.color = state.recording ? 'red' : 'white';
+  hud.style.color = state.recording ? 'orangered' : 'gainsboro';
   
   let frames = (state.currentFrame + '').padStart(7,'0');
   frames += state.totalFrames > 0 ? '/' + state.totalFrames : '';
   let clock = new Date(state.currentTime - state.startTime).toISOString().substr(14, 5);
   let intraSecondFrame = (state.currentFrame % state.frameRate + '').padStart(2, '0');
   let dataAmount = dataAmountString(tape.length);
-  hud.textContent = `●REC ${clock}.${intraSecondFrame} #${frames} ${dataAmount}`; // shows number of COMPLETE frames
+  // eslint-disable-next-line no-irregular-whitespace
+  hud.textContent = `●REC ${clock}.${intraSecondFrame} #${frames} ${dataAmount}`; // shows number of COMPLETE frames
 }
 
 function hideHUD(time = 0) {
