@@ -1,4 +1,5 @@
 import Tarball from './tar.js';
+// import { logFrame } from './main.js';
 
 let state = {
   startTime: 0, // time for first frame
@@ -8,6 +9,7 @@ let state = {
   totalFrames: 0, // total frames to record. 0 means unbounded
   currentFrame: 0, // current recording frame,
   recording: false,
+  startRecording: false, // used to wait for one update() after recording was triggered
 };
 
 let tape; // Tarball (i.e. Tape ARchive)
@@ -26,6 +28,11 @@ function hijackTimingFunctions() {
   window.requestAnimationFrame = function replacementRequestAnimationFrame(callback) {
     requestAnimationFrameCallbacks.push(callback);
   };
+  // // Version of replacementRequestAnimationFrame with logging
+  // window.requestAnimationFrame = function replacementRequestAnimationFrame(callback) {
+  //   logFrame('hijacked requestAnimationFrame ' + state.currentTime);
+  //   requestAnimationFrameCallbacks.push(callback);
+  // };
   window.performance.now = function replacementPerformanceDotNow() {
     return state.currentTime;
   };
@@ -47,6 +54,18 @@ function callRequestAnimationFrameCallbacks() {
   requestAnimationFrameCallbacks = [];
 }
 
+// // Version of callRequestAnimationFrameCallbacks with logging
+// function callRequestAnimationFrameCallbacks() {
+//   requestAnimationFrameCallbacks.forEach( callback => {
+//     logFrame('queuing anim callback ' + state.currentTime);
+//     setTimeout((time) => {
+//       logFrame('running anim callback ' + time);
+//       callback(time);
+//     }, 0, state.currentTime);
+//   });
+//   requestAnimationFrameCallbacks = [];
+// }
+
 
 let default_options = {
   start: undefined,
@@ -57,8 +76,6 @@ let default_options = {
 export function start(options) {
   console.log('rec: starting', options);
   options = Object.assign({}, default_options, options);
-  
-  console.log(options);
   
   // frame rate and time
   state.frameRate = options.framerate;
@@ -87,23 +104,27 @@ export function start(options) {
   
   createHUD();
   
-  state.recording = true;
+  state.recording = false;
+  state.startRecording = true;
 }
 
 
-// function updateTime() {
-//   state.currentTime += state.frameTime;
-// }
-
-
 export function update(renderer) {
+  if (state.startRecording) {
+    state.recording = true;
+    state.startRecording = false;
+    // IMPORTANT: Skip recording this frame, just run callback
+    // This frame still has unhijacked timing
+    callRequestAnimationFrameCallbacks();
+    return;
+  }
   if (!state.recording) return;
   
   let canvas = renderer.domElement;
   
-  // TODO capture a frame; numbering is currentFrame+1
+  // Capture a frame; numbering is currentFrame+1
   console.log('CAPTURING FRAME #' + (state.currentFrame+1) + ' TIME ' + state.currentTime);
-  console.assert(performance.now() === state.currentTime, "checking performance.now()");
+  // console.assert(performance.now() === state.currentTime, "checking performance.now()");
   let filename = `${state.currentFrame+1}`.padStart(7,'0') + '.png';
   
   // saveCanvasToPNG(canvas, filename).then(() => {
