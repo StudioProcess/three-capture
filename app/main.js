@@ -45,7 +45,7 @@ function setup() {
 
 function loop(time) { // eslint-disable-line no-unused-vars
   frameCount++;
-  logFrame('loop start ' + time);
+  // logFrame('loop start ' + time);
   time -= timeOffset;
   
   mesh.rotation.x = (time / 1000) / loopPeriod * Math.PI/2;
@@ -57,7 +57,7 @@ function loop(time) { // eslint-disable-line no-unused-vars
   rec.update( renderer );
   
   // console.log(time/1000);
-  logFrame('loop end ' + time);
+  // logFrame('loop end ' + time);
 }
 
 
@@ -81,6 +81,10 @@ document.addEventListener('keydown', e => {
   else if (e.key == 'b') {
     toggleLog();
     rec.startstop( { start:0, duration:1, framerate:10 } ); // record 1 second
+  }
+  else if (e.key == 'n') {
+    toggleLog();
+    rec.startstop( { start:0, duration:10, chunk:10} ); // record in 10 MB chunks
   }
   
   else if (e.key == 'r') {
